@@ -27,13 +27,38 @@ class UNet(nn.Module):
         # Bottleneck
         self.bottleneck = ConvBlock(512, 1024)
         # Decoder
+        self.upconv_3 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.dec_3 = ConvBlock(1024, 512)
+        self.upconv_2 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.dec_2 = ConvBlock(512, 256)
+        self.upconv_1 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.dec_1 = ConvBlock(256, 128)
+        self.upconv_0 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.dec_0 = ConvBlock(128, 64)
+        # Output
+        self.out_conv = nn.Conv2d(64, out_channels, kernel_size=1)
 
-    # def forward(self, x):
-    #     return self.net(input_data)
+    def forward(self, x):
+        # Encoder path
+        enc_0 = self.enc_0(x)
+        enc_1 = self.enc_1(nn.MaxPool2d(2)(enc_0))
+        enc_2 = self.enc_1(nn.MaxPool2d(2)(enc_1))
+        enc_3 = self.enc_1(nn.MaxPool2d(2)(enc_2))
+
+        # Bottleneck
+        bottleneck = self.bottleneck(nn.MaxPool2d(2)(enc_3))
+
+        # Decoder path
+        dec_3 = self.upconv_3(bottleneck)
+        dec_3 = self.dec_3(torch.cat([dec_3, enc_3], dim=1))
+        dec_2 = self.upconv_2(dec_3)
+        dec_2 = self.dec_2(torch.cat([dec_2, enc_2], dim=1))
+        dec_1 = self.upconv_1(dec_2)
+        dec_1 = self.dec_1(torch.cat([dec_1, enc_1], dim=1))
+        dec_0 = self.upconv_0(dec_1)
+        dec_0 = self.dec_0(torch.cat([dec_0, enc_0], dim=1))
+
+        return self.out_conv(dec_0)
 
 
 if __name__ == "__main__":
@@ -53,13 +78,20 @@ if __name__ == "__main__":
         device
     )  # Batch size 1, 1 channel, 128x128 image
     output_conv_block = conv_block(sample_input_conv_block)
-    print("Double conv: ", conv_block)
+    print("Conv block: ", conv_block)
     print(
-        "Double conv: Input {0} -> Output {1}".format(
+        "Conv block: Input {0} -> Output {1}".format(
             sample_input_conv_block.size(), output_conv_block.size()
         )
     )  # Should be [1, 64, 568, 568]
     print()
 
-    # model = UNet().to(device)
-    # print(model)
+    unet = UNet().to(device)
+    # TODO: Fix error
+    output_unet = unet(sample_input_conv_block)
+    print(unet)
+    print(
+        "UNet: Input {0} -> Output {1}".format(
+            sample_input_conv_block.size(), output_unet.size()
+        )
+    )  # Should be [1, 64, 568, 568]
