@@ -41,22 +41,34 @@ class UNet(nn.Module):
     def forward(self, x):
         # Encoder path
         enc_0 = self.enc_0(x)
+        print(enc_0.shape)
         enc_1 = self.enc_1(nn.MaxPool2d(2)(enc_0))
-        enc_2 = self.enc_1(nn.MaxPool2d(2)(enc_1))
-        enc_3 = self.enc_1(nn.MaxPool2d(2)(enc_2))
+        print(enc_1.shape)
+        enc_2 = self.enc_2(nn.MaxPool2d(2)(enc_1))
+        print(enc_2.shape)
+        enc_3 = self.enc_3(nn.MaxPool2d(2)(enc_2))
+        print(enc_3.shape)
 
         # Bottleneck
         bottleneck = self.bottleneck(nn.MaxPool2d(2)(enc_3))
+        print(bottleneck.shape)
 
         # Decoder path
         dec_3 = self.upconv_3(bottleneck)
+        print("dec_3: ", dec_3.shape)
+        # TODO: Need to concat
         dec_3 = self.dec_3(torch.cat([dec_3, enc_3], dim=1))
+        print(dec_3.shape)
         dec_2 = self.upconv_2(dec_3)
         dec_2 = self.dec_2(torch.cat([dec_2, enc_2], dim=1))
+        print(dec_2.shape)
         dec_1 = self.upconv_1(dec_2)
         dec_1 = self.dec_1(torch.cat([dec_1, enc_1], dim=1))
+        print(dec_1.shape)
         dec_0 = self.upconv_0(dec_1)
         dec_0 = self.dec_0(torch.cat([dec_0, enc_0], dim=1))
+        print(dec_0.shape)
+        input()
 
         return self.out_conv(dec_0)
 
