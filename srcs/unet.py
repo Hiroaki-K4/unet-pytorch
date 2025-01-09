@@ -16,6 +16,12 @@ class ConvBlock(nn.Module):
         return self.conv_block(x)
 
 
+def align_dim_between_encoder_decoder(enc_dim, dec_dim):
+    start = (enc_dim - dec_dim) // 2
+    end = start + dec_dim
+    return start, end
+
+
 class UNet(nn.Module):
     def __init__(self, in_channels=1, out_channels=1):
         super(UNet, self).__init__()
@@ -41,34 +47,30 @@ class UNet(nn.Module):
     def forward(self, x):
         # Encoder path
         enc_0 = self.enc_0(x)
-        print(enc_0.shape)
         enc_1 = self.enc_1(nn.MaxPool2d(2)(enc_0))
-        print(enc_1.shape)
         enc_2 = self.enc_2(nn.MaxPool2d(2)(enc_1))
-        print(enc_2.shape)
         enc_3 = self.enc_3(nn.MaxPool2d(2)(enc_2))
-        print(enc_3.shape)
 
         # Bottleneck
         bottleneck = self.bottleneck(nn.MaxPool2d(2)(enc_3))
-        print(bottleneck.shape)
 
         # Decoder path
         dec_3 = self.upconv_3(bottleneck)
-        print("dec_3: ", dec_3.shape)
-        # TODO: Need to concat
+        start, end = align_dim_between_encoder_decoder(enc_3.shape[2], dec_3.shape[2])
+        enc_3 = enc_3[:, :, start:end, start:end]
         dec_3 = self.dec_3(torch.cat([dec_3, enc_3], dim=1))
-        print(dec_3.shape)
         dec_2 = self.upconv_2(dec_3)
+        start, end = align_dim_between_encoder_decoder(enc_2.shape[2], dec_2.shape[2])
+        enc_2 = enc_2[:, :, start:end, start:end]
         dec_2 = self.dec_2(torch.cat([dec_2, enc_2], dim=1))
-        print(dec_2.shape)
         dec_1 = self.upconv_1(dec_2)
+        start, end = align_dim_between_encoder_decoder(enc_1.shape[2], dec_1.shape[2])
+        enc_1 = enc_1[:, :, start:end, start:end]
         dec_1 = self.dec_1(torch.cat([dec_1, enc_1], dim=1))
-        print(dec_1.shape)
         dec_0 = self.upconv_0(dec_1)
+        start, end = align_dim_between_encoder_decoder(enc_0.shape[2], dec_0.shape[2])
+        enc_0 = enc_0[:, :, start:end, start:end]
         dec_0 = self.dec_0(torch.cat([dec_0, enc_0], dim=1))
-        print(dec_0.shape)
-        input()
 
         return self.out_conv(dec_0)
 
@@ -99,11 +101,10 @@ if __name__ == "__main__":
     print()
 
     unet = UNet().to(device)
-    # TODO: Fix error
     output_unet = unet(sample_input_conv_block)
     print(unet)
     print(
         "UNet: Input {0} -> Output {1}".format(
             sample_input_conv_block.size(), output_unet.size()
         )
-    )  # Should be [1, 64, 568, 568]
+    )  # Should be [1, 1, 388, 388]
