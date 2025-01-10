@@ -3,7 +3,23 @@
 <br></br>
 
 # U-Net architecture
-TODO: Explain how to create unet architecture
+U-Net is built on the architecture shown below. The height and width of the image are reduced, and when the number of channels reaches $1024$, the height and width of the image are increased little by little in the opposite direction. This structure is called U-Net architecture because it resembles the shape of **U**.
+
+<img src="resources/reference/unet_architecture.png" width='600'>
+
+U-Net consists mainly of the following parts.
+
+- Convolution block
+- Max pooling
+- Up convolution
+- Copy and crop
+
+## Convolution block
+
+## Max pooling
+## Up convolution
+## Copy and crop
+
 
 ```
 The contracting path follows the typical architecture of a convolutional network.
