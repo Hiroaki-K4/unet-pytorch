@@ -1,4 +1,18 @@
 # unet-pytorch
+In this repository, I have implemented the U-Net architecture for segmentation. We can explore a simple segmentation task and learn how to implement the U-Net architecture from scratch.
+
+<br></br>
+
+## How to create a local environment
+
+You can create local environment by running following commands.
+
+```bash
+conda create -n unet python=3.11
+conda activate unet
+conda install pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
+pip install -r requirements.txt
+```
 
 <br></br>
 
@@ -48,13 +62,27 @@ self.upconv_0 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 ```
 
 ## Copy and crop
+The grey arrow in the upper image represents copy-and-crop manipulation.
+We crop the data from the encoder process and copy it to the decoder process. Due to the convolution block, the size(width, height) of the encoder is smaller than the that of the decoder. Therefore, we need to align the dimention by running the following process.
 
+```python
+def align_dim_between_encoder_decoder(enc_dim, dec_dim):
+    start = (enc_dim - dec_dim) // 2
+    end = start + dec_dim
+    return start, end
 
-You can create local environment by running following commands.
+start, end = align_dim_between_encoder_decoder(enc_3.shape[2], dec_3.shape[2])
+enc_3 = enc_3[:, :, start:end, start:end]
+```
+
+You can check U-Net architecture by running the following commands
 
 ```bash
-conda create -n unet python=3.11
-conda activate unet
-conda install pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
-pip install -r requirements.txt
+cd srcs
+python3 unet.py
 ```
+
+<br></br>
+
+# References
+- [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/pdf/1505.04597)
