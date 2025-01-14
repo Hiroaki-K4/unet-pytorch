@@ -1,20 +1,28 @@
+import glob
+import os
+
 import cv2
 import torch
 
 from unet import UNet
 
 
-def create_label_data(anno_data_path):
-    print()
+def train(aug_data_path, device):
+    img_path_list = glob.glob(os.path.join(aug_data_path, "*.png"))
+    img_paths = [
+        path
+        for path in img_path_list
+        if path.endswith(".png") and not path.endswith("_anno.png")
+    ]
+    anno_paths = [path for path in img_path_list if path.endswith("_anno.png")]
+    img_paths.sort()
+    anno_paths.sort()
+    print(img_paths)
+    print(anno_paths)
+    # TODO: Create label data
 
-
-def train(input_data_path, anno_data_path, device):
-    img = cv2.imread(input_data_path)
-    print(img.shape)
-    input()
-    create_label_data(anno_data_path)
-    model = UNet().to(device)
-    print(model)
+    # model = UNet().to(device)
+    # print(model)
 
 
 if __name__ == "__main__":
@@ -26,6 +34,5 @@ if __name__ == "__main__":
         else "cpu"
     )
     print("Using {0} device".format(device))
-    input_data_path = "../resources/original/python.png"
-    anno_data_path = "../resources/annotation/python.png"
-    train(input_data_path, anno_data_path, device)
+    aug_data_path = "../resources/augmentation"
+    train(aug_data_path, device)
