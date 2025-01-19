@@ -75,12 +75,19 @@ start, end = align_dim_between_encoder_decoder(enc_3.shape[2], dec_3.shape[2])
 enc_3 = enc_3[:, :, start:end, start:end]
 ```
 
-You can check U-Net architecture by running the following commands
+You can check U-Net architecture by running the following commands.
 
 ```bash
 cd srcs
 python3 unet.py
 ```
+
+<br></br>
+
+# Training
+
+- Optimizer -> SGD
+- Loss -> Cross entropy
 
 <br></br>
 

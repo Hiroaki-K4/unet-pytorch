@@ -23,7 +23,7 @@ def align_dim_between_encoder_decoder(enc_dim, dec_dim):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=1, out_channels=1):
+    def __init__(self, in_channels=1, out_channels=2):
         super(UNet, self).__init__()
         # Encoder
         self.enc_0 = ConvBlock(in_channels, 64)
@@ -107,4 +107,4 @@ if __name__ == "__main__":
         "UNet: Input {0} -> Output {1}".format(
             sample_input_conv_block.size(), output_unet.size()
         )
-    )  # Should be [1, 1, 388, 388]
+    )  # Output should be [1, 2, 388, 388]
