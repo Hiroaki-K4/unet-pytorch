@@ -22,7 +22,7 @@ def create_label_data(anno_img, output_size):
     return label
 
 
-def train(aug_data_path, output_size, learning_rate, device):
+def train(aug_data_path, output_size, learning_rate, epochs, device):
     img_path_list = glob.glob(os.path.join(aug_data_path, "*.png"))
     img_paths = [
         path
@@ -35,30 +35,32 @@ def train(aug_data_path, output_size, learning_rate, device):
     model = UNet().to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    # TODO: Think about loss
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.CrossEntropyLoss()
 
-    for i in range(len(img_paths)):
-        img_path = img_paths[i]
-        img = cv2.imread(img_path)
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        tensor = torch.from_numpy(gray_img).float()
-        tensor = tensor.unsqueeze(0).unsqueeze(0).to(device)  # Shape: (1, 1, 572, 572)
-        pred = model.forward(tensor)
+    for epoch in range(epochs):
+        count = 0
+        epoch_loss = 0
+        for i in range(len(img_paths)):
+            img_path = img_paths[i]
+            img = cv2.imread(img_path)
+            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            tensor = torch.from_numpy(gray_img).float()
+            tensor = (
+                tensor.unsqueeze(0).unsqueeze(0).to(device)
+            )  # Shape: (1, 1, 572, 572)
+            pred = model.forward(tensor)
 
-        anno_img_path = anno_paths[i]
-        anno_img = cv2.imread(anno_img_path)
-        label = create_label_data(anno_img, output_size)
-        loss = loss_fn(pred, label.to(device))
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            anno_img_path = anno_paths[i]
+            anno_img = cv2.imread(anno_img_path)
+            label = create_label_data(anno_img, output_size)
+            loss = loss_fn(pred, label.to(device))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+            count += 1
 
-        print(pred.shape)
-        print(label.shape)
-        input()
-
-    # print(model)
+        print("Epoch {0}, Loss={1}".format(epoch, round(epoch_loss / count, 5)))
 
 
 if __name__ == "__main__":
@@ -72,4 +74,6 @@ if __name__ == "__main__":
     print("Using {0} device".format(device))
     aug_data_path = "../resources/augmentation"
     output_size = 388
-    train(aug_data_path, output_size, device)
+    learning_rate = 1e-3
+    epochs = 10
+    train(aug_data_path, output_size, learning_rate, epochs, device)
