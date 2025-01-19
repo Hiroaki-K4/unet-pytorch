@@ -8,21 +8,31 @@ import torch.nn as nn
 from unet import UNet
 
 
+# def create_label_data(anno_img, output_size):
+#     anno_img = cv2.resize(
+#         anno_img, (output_size, output_size), interpolation=cv2.INTER_NEAREST
+#     )
+#     label = torch.zeros((2, output_size, output_size))
+#     # Check if pixel is (255, 255, 255) and update the label
+#     white_mask = (anno_img == [255, 255, 255]).all(axis=-1)
+#     label[1][white_mask] = 1  # Set channel 1 to 1 where mask is True
+#     label[0][~white_mask] = 1  # Set channel 0 to 1 where mask is False
+#     label = label.unsqueeze(0)
+
+#     return label
+
+
 def create_label_data(anno_img, output_size):
     anno_img = cv2.resize(
         anno_img, (output_size, output_size), interpolation=cv2.INTER_NEAREST
     )
-    label = torch.zeros((2, output_size, output_size))
-    # Check if pixel is (255, 255, 255) and update the label
     white_mask = (anno_img == [255, 255, 255]).all(axis=-1)
-    label[1][white_mask] = 1  # Set channel 1 to 1 where mask is True
-    label[0][~white_mask] = 1  # Set channel 0 to 1 where mask is False
-    label = label.unsqueeze(0)
-
-    return label
+    label = torch.zeros((output_size, output_size), dtype=torch.long)
+    label[white_mask] = 1  # Set to class 1 where mask is white
+    return label.unsqueeze(0)  # Add batch dimension
 
 
-def train(aug_data_path, output_size, learning_rate, epochs, device):
+def train(aug_data_path, output_size, learning_rate, epochs, output_model_path, device):
     img_path_list = glob.glob(os.path.join(aug_data_path, "*.png"))
     img_paths = [
         path
@@ -48,6 +58,7 @@ def train(aug_data_path, output_size, learning_rate, epochs, device):
             tensor = (
                 tensor.unsqueeze(0).unsqueeze(0).to(device)
             )  # Shape: (1, 1, 572, 572)
+            tensor = tensor / 255.0
             pred = model.forward(tensor)
 
             anno_img_path = anno_paths[i]
@@ -61,6 +72,10 @@ def train(aug_data_path, output_size, learning_rate, epochs, device):
             count += 1
 
         print("Epoch {0}, Loss={1}".format(epoch, round(epoch_loss / count, 5)))
+
+    print("Finished training!!")
+    torch.save(model.state_dict(), output_model_path)
+    print("Saved model: ", output_model_path)
 
 
 if __name__ == "__main__":
@@ -76,4 +91,5 @@ if __name__ == "__main__":
     output_size = 388
     learning_rate = 1e-3
     epochs = 10
-    train(aug_data_path, output_size, learning_rate, epochs, device)
+    output_model_path = "unet.pth"
+    train(aug_data_path, output_size, learning_rate, epochs, output_model_path, device)
