@@ -1,17 +1,18 @@
-from unet import UNet
 import cv2
-import torch
 import numpy as np
+import torch
+
+from unet import UNet
 
 
 def create_segmentation_image(pred):
-    print(pred.shape)
-    result = (pred[0] < pred[1]).int()  # Converts the boolean result to int (1 or 0)
+    result = (torch.sigmoid(pred) > 0.5).int()
     result *= 255
+    if result.shape[0] == 1:
+        result = result.squeeze(0)  # Now shape is (388, 388)
     array = result.cpu().numpy()
     array_3_channel = np.repeat(array[:, :, np.newaxis], 3, axis=2)
-    print(array_3_channel)
-    print(array_3_channel.shape)
+
     return array_3_channel
 
 
@@ -25,9 +26,8 @@ def predict(image_path, model_path, device):
     tensor = tensor.unsqueeze(0).unsqueeze(0).to(device)  # Shape: (1, 1, 572, 572)
     tensor = tensor / 255.0
     pred = model.forward(tensor)
-    for i in range(pred.shape[0]):
-        seg_img = create_segmentation_image(pred[i])
-        cv2.imwrite("test.png", seg_img)
+    seg_img = create_segmentation_image(pred[0])
+    cv2.imwrite("test.png", seg_img)
 
 
 if __name__ == "__main__":
