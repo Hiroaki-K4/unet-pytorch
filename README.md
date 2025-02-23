@@ -84,6 +84,28 @@ python3 unet.py
 
 <br></br>
 
+# Loss function
+We use [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html) of pytorch's function which combines a sigmoid layer and the BCELoss(Binary cross entropy) in one single class.
+
+$$
+\ell(x, y) = L = \{l_1, \dots, l_N\}^\top, \quad l_n = -w_n \left[ y_n \cdot \log \sigma(x_n) + (1 - y_n) \cdot \log (1 - \sigma(x_n)) \right]
+$$
+
+In this dataset, foreground area is much smaller than background area, so we use `pos_weight` parameter to decrease that imbalance. To simplify, we decide pos_weight value manually, but it is better to use more robust method in a more complicated task.
+
+```python
+loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([10.0]).to(device))
+```
+
+<br></br>
+
+# Dataset
+We try to segment a Golang logo because its shape is simple and I like Golang. By augmentation, we can prepare training dataset. 
+
+<img src="resources/original/golang.png" width='300'>
+
+<br></br>
+
 # How to run
 First, we create an annotation data by the following command.
 
@@ -122,7 +144,12 @@ cd srcs
 python3 predict.py
 ```
 
+Segmentation result is here. As you can see, it works well.
+
+<img src="resources/reference/result.gif" width='500'>
+
 <br></br>
 
 # References
 - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/pdf/1505.04597)
+- [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html)
