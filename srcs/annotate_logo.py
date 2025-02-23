@@ -14,6 +14,6 @@ def annotate_logo(filename, output_path):
 
 if __name__ == "__main__":
     # This program annotates a transparent png logo file
-    filename = "../resources/original/pytorch.png"
-    output_path = "../resources/annotation/pytorch.png"
+    filename = "../resources/original/golang.png"
+    output_path = "../resources/annotation/golang.png"
     annotate_logo(filename, output_path)

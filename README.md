@@ -29,7 +29,7 @@ U-Net consists mainly of the following parts.
 - Copy and crop
 
 ## Convolution block
-The blue arrow of upper image represents the convolution block. It is composed of a convolutional layer followed by a ReLu activation layer. The convolutional layer employs a kernel size of $3\times 3$ with no padding. As a result of processing through this block, the spatial dimentions of the input image(width and height) are reduced by $4$ pixels, transitioning from $572\times 572$ to $568 \times 568$. The example of convolution block with pytorch is as follows.
+The blue arrow of upper image represents the convolution block. It is composed of a convolutional layer followed by a ReLu activation layer. The convolutional layer employs a kernel size of $3\times 3$ with no padding. As a result of processing through this block, the spatial dimensions of the input image(width and height) are reduced by $4$ pixels, transitioning from $572\times 572$ to $568 \times 568$. The example of convolution block with pytorch is as follows.
 
 ```python
 class ConvBlock(nn.Module):
@@ -47,7 +47,7 @@ class ConvBlock(nn.Module):
 ```
 
 ## Max pooling
-The red arrow in the upper image denotes a $2 \times 2$ max pooling layer, which reduces the spatial dimentions of the image(width and height) by half while increasing the number of channels. We can use `MaxPool2d` function of pytorch to do that.
+The red arrow in the upper image denotes a $2 \times 2$ max pooling layer, which reduces the spatial dimensions of the image(width and height) by half while increasing the number of channels. We can use `MaxPool2d` function of pytorch to do that.
 
 ```python
 enc_0 = self.enc_0(x)
@@ -62,7 +62,7 @@ self.upconv_0 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 ```
 
 ## Copy and crop
-The grey arrow in the upper image represents copy-and-crop manipulation.
+The gray arrow in the upper image represents copy-and-crop manipulation.
 We crop the data from the encoder process and copy it to the decoder process. Due to the convolution block, the size(width, height) of the encoder is smaller than the that of the decoder. Therefore, we need to align the dimention by running the following process.
 
 ```python
@@ -84,10 +84,43 @@ python3 unet.py
 
 <br></br>
 
-# Training
+# How to run
+First, we create an annotation data by the following command.
 
-- Optimizer -> SGD
-- Loss -> Cross entropy
+```bash
+cd srcs
+python3 annotate_logo.py
+```
+
+Next, we augment input data to increase the number of dataset.
+
+```bash
+cd srcs
+python3 create_dataset.py
+```
+
+We can run training with following commands.
+
+```bash
+cd srcs
+python3 train.py
+```
+
+In this code, we use the following parameters as default.
+
+```
+- Optimizer -> Adam
+- Loss -> Binary cross entropy
+- Learning rate -> 1e-4
+- Epoch -> 5
+```
+
+We can run segmentation by running following commands.
+
+```bash
+cd srcs
+python3 predict.py
+```
 
 <br></br>
 
