@@ -1,5 +1,5 @@
 # unet-pytorch
-In this repository, I have implemented the U-Net architecture for segmentation. We can explore a simple segmentation task and learn how to implement the U-Net architecture from scratch.
+In this repository, I've implemented the U-Net architecture for segmentation. We can explore a simple segmentation task and learn how to implement the U-Net architecture from scratch.
 
 <br></br>
 
@@ -17,6 +17,7 @@ pip install -r requirements.txt
 <br></br>
 
 # U-Net architecture
+U-Net architecture is used in many machine learning tasks like segmentation and diffusion models.
 U-Net is built on the architecture shown below. The height and width of the image are reduced, and when the number of channels reaches $1024$, the height and width of the image are increased little by little in the opposite direction. This structure is called U-Net architecture because it resembles the shape of **U**.
 
 <img src="resources/reference/unet_architecture.png" width='600'>
@@ -29,7 +30,7 @@ U-Net consists mainly of the following parts.
 - Copy and crop
 
 ## Convolution block
-The blue arrow of upper image represents the convolution block. It is composed of a convolutional layer followed by a ReLu activation layer. The convolutional layer employs a kernel size of $3\times 3$ with no padding. As a result of processing through this block, the spatial dimensions of the input image(width and height) are reduced by $4$ pixels, transitioning from $572\times 572$ to $568 \times 568$. The example of convolution block with pytorch is as follows.
+The blue arrow of upper image represents the convolution block. It is composed of a convolutional layer followed by a ReLU activation layer. The convolutional layer employs a kernel size of $3\times 3$ with no padding. As a result of processing through this block, the spatial dimensions of the input image(width and height) are reduced by $4$ pixels, transitioning from $572\times 572$ to $568 \times 568$. The example of convolution block with pytorch is as follows.
 
 ```python
 class ConvBlock(nn.Module):
@@ -100,7 +101,7 @@ loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([10.0]).to(device))
 <br></br>
 
 # Dataset
-We try to segment a Golang logo because its shape is simple and I like Golang. By augmentation, we can prepare training dataset. 
+We try to segment a Golang logo because its shape is simple, and I like Golang. By augmentation, we can prepare training dataset. 
 
 <img src="resources/original/golang.png" width='300'>
 
@@ -114,7 +115,7 @@ cd srcs
 python3 annotate_logo.py
 ```
 
-Next, we augment input data to increase the number of dataset.
+Next, we augment input data to increase the dataset size.
 
 ```bash
 cd srcs
@@ -144,7 +145,7 @@ cd srcs
 python3 predict.py
 ```
 
-Segmentation result is here. As you can see, it works well.
+The segmentation result is shown below. As you can see, it works well.
 
 <img src="resources/reference/result.gif" width='500'>
 
