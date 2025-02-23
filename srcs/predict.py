@@ -1,5 +1,6 @@
-import cv2
 import os
+
+import cv2
 import numpy as np
 import torch
 
@@ -13,8 +14,28 @@ def create_segmentation_image(pred):
         result = result.squeeze(0)
     array = result.cpu().numpy()
     array_3_channel = np.repeat(array[:, :, np.newaxis], 3, axis=2)
+    array_3_channel[array == 255] = [0, 0, 255]
+    array_3_channel[array == 0] = [255, 255, 255]
 
     return array_3_channel
+
+
+def add_label(img, text):
+    # Add text to the image
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = max(
+        0.5, min(img.shape[1], img.shape[0]) / 500
+    )  # Scale text size dynamically
+    thickness = 2
+    text_color = (0, 0, 0)  # Black text
+    # Position text at the top-left with some padding
+    text_position = (10, 30)
+    # Add text to image
+    cv2.putText(
+        img, text, text_position, font, font_scale, text_color, thickness, cv2.LINE_AA
+    )
+
+    return img
 
 
 def predict(image_path, model_path, device):
@@ -47,17 +68,23 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
     img_num = 5
     for i in range(img_num):
-        img_filename = f"{i:05}.png"
-        image_path = os.path.join(image_dir, img_filename)
+        input_img_filename = f"{i:05}.png"
+        seg_img_filename = f"{i:05}_seg.png"
+        image_path = os.path.join(image_dir, input_img_filename)
         pred = predict(image_path, model_path, device)
         seg_img = create_segmentation_image(pred[0])
-        output_path = os.path.join(output_dir, img_filename)
+        input_path = os.path.join(output_dir, input_img_filename)
+        seg_path = os.path.join(output_dir, seg_img_filename)
         input_img = cv2.imread(image_path)
-        seg_img = cv2.resize(
-            seg_img,
-            (input_img.shape[1], input_img.shape[0]),
-            interpolation=cv2.INTER_NEAREST,
-        )
+        h_input, w_input = input_img.shape[:2]
+        h_output, w_output = seg_img.shape[:2]
+        h_offset = (h_input - h_output) // 2
+        w_offset = (w_input - w_output) // 2
+        input_cropped = input_img[
+            h_offset : h_offset + h_output, w_offset : w_offset + w_output
+        ]
         seg_img = seg_img.astype(np.uint8)
-        blended = cv2.addWeighted(input_img, 0.7, seg_img, 0.3, 0)
-        cv2.imwrite(output_path, blended)
+        input_cropped = add_label(input_cropped, "Input")
+        seg_img = add_label(seg_img, "Result")
+        cv2.imwrite(input_path, input_cropped)
+        cv2.imwrite(seg_path, seg_img)
