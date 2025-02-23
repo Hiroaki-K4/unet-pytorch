@@ -7,8 +7,8 @@ import numpy as np
 
 def augmentation(ori_img_dir, output_dir, output_size, aug_data_num):
     ori_img_list = glob.glob(os.path.join(ori_img_dir, "*.png"))
-    min_scale = 0.1
-    max_scale = 0.5
+    min_scale = 0.6
+    max_scale = 1.0
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
 
@@ -47,10 +47,10 @@ def augmentation(ori_img_dir, output_dir, output_size, aug_data_num):
                 fy=resize_ratio,
                 interpolation=cv2.INTER_NEAREST,
             )
-            max_start_y = output_size - img.shape[0]
-            max_start_x = output_size - img.shape[1]
-            start_y = np.random.randint(0, max_start_y)
-            start_x = np.random.randint(0, max_start_x)
+            max_start_y = max(0, output_size - img.shape[0])
+            max_start_x = max(0, output_size - img.shape[1])
+            start_y = np.random.randint(0, max_start_y + 1) if max_start_y > 0 else 0
+            start_x = np.random.randint(0, max_start_x + 1) if max_start_x > 0 else 0
             combined_img[
                 start_y : start_y + img.shape[0], start_x : start_x + img.shape[1]
             ] = img
@@ -70,5 +70,5 @@ if __name__ == "__main__":
     ori_img_dir = "../resources/original"
     output_dir = "../resources/augmentation"
     output_size = 572
-    aug_data_num = 100
+    aug_data_num = 200
     augmentation(ori_img_dir, output_dir, output_size, aug_data_num)

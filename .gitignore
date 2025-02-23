@@ -1,3 +1,4 @@
 srcs/__pycache__/
 srcs/*.pth
 resources/augmentation/
+resources/output/
